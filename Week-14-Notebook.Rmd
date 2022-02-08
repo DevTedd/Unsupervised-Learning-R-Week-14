@@ -1,0 +1,178 @@
+---
+title: "Week 14 IP Notebook"
+author: "Ted"
+date: "2/4/2022"
+output: html_document
+---
+
+# Week 14 IP: Unsupervised Learning 
+
+# Assesment 
+
+You are a Data analyst at Carrefour Kenya and are currently undertaking a project that will inform the marketing department on the most relevant marketing strategies that will result in the highest no. of sales (total price including tax). Your project has been divided into four parts where you'll explore a recent marketing dataset by performing various unsupervised learning techniques and later providing recommendations based on your insights.
+
+## Part 1 : Dimensionality Reduction 
+
+This section of the project entails reducing your dataset to a low dimensional dataset using the t-SNE algorithm or PCA. You will be required to perform your analysis and provide insights gained from your analysis
+
+```{r}
+
+#loading up our data 
+library(readr)
+df1 <- read_csv("Supermarket_Dataset_1 - Sales Data.csv")
+head(df1)
+str(df1)
+```
+
+```{r}
+
+# selecting just the numerical columns
+
+df <- df1[,c(6,7,8,12,13,14,15,16)]
+head(df)
+```
+```{r}
+
+# We then pass df to the prcomp(). We also set two arguments, center and scale, 
+# to be TRUE then preview our object with summary
+# ---
+# We have to remove the gross margin percentage as its a constant value for all the rows
+df.pca <- prcomp(df1[,c(6,7,8,12,14,15,16)], center = TRUE, scale. = TRUE)
+summary(df.pca)
+
+
+```
+
+We have 7 primary principle components the first accouunting for 70% and the second 14% 
+
+```{r}
+
+# Calling str() to have a look at your PCA object
+# ---
+# 
+str(df.pca)
+
+```
+
+
+## Plotting the PCA Graph
+
+```{r}
+
+library(devtools)
+library(ggbiplot)
+ggbiplot(df.pca)
+```
+The factors that have the most influence on the total amount spent is the rating followed by unit price, gross income then quantity 
+```{r}
+
+ggbiplot(df.pca,ellipse=TRUE,  labels=rownames(df),obs.scale = 1, var.scale = 1)
+```
+
+
+```{r}
+
+df.pca
+```
+## Moving onto Feature selection 
+
+```{r}
+#loading our libraries
+suppressWarnings(
+        suppressMessages(if
+                         (!require(caret, quietly=TRUE))
+                install.packages("caret")))
+library(caret)
+library(corrplot)
+```
+
+
+```{r}
+correlationMatrix <- cor(df)#only numerical variables
+correlationMatrix
+
+```
+The quantity followed by the unit price have the highest correlation with the total amount spent 
+```{r}
+
+suppressWarnings(
+        suppressMessages(if
+                         (!require(clustvarsel, quietly=TRUE))
+                install.packages("clustvarsel")))
+                         
+library(clustvarsel)
+suppressWarnings(
+        suppressMessages(if
+                         (!require(mclust, quietly=TRUE))
+                install.packages("mclust")))
+library(mclust)
+
+
+out = clustvarsel(df, G = 1:5)
+out
+```
+
+
+
+```{r}
+Subset1 = df[,out$subset]
+mod = Mclust(Subset1, G = 1:5)
+summary(mod)
+```
+
+
+```{r}
+plot(mod,c("classification"))
+
+```
+
+
+
+# Moving onto the Association Rules
+
+```{r}
+#importing our second dataset
+library(arules)
+library(readr)
+df2 <- read_csv("Supermarket_Sales_Dataset II.csv")
+class(df2)
+```
+```{r}
+head(df2)
+summary(df2)
+```
+
+```{r}
+
+itemFrequency(df2[, 8:10],type = "absolute")
+round(itemFrequency(Transactions[, 8:10],type = "relative")*100,2)
+```
+
+
+# Moving to Anomoly Detection 
+
+```{r}
+library(readr)
+df3 <- read_csv("D:/R Stuff/R Stuff Moringa/Unsupervised-Learning-R-Week-14/Supermarket_Sales_Forecasting - Sales.csv")
+head(df3)
+
+#Installing packages
+install.packages("anomalize")
+install.packages("dplyr")
+install.packages("magrittr")
+install.packages("tidyverse")
+library(tidyverse)
+library(anomalize)
+library(magrittr) # needs to be run every time you start R and want to use %>%
+library(dplyr) 
+```
+
+```{r}
+df3 %>%
+    time_decompose(df3$Date) %>%
+    anomalize(remainder) %>%
+    time_recompose() %>%
+    plot_anomalies(time_recomposed = TRUE, ncol = 3, alpha_dots = 0.5)
+df3
+
+```
