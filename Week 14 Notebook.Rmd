@@ -205,11 +205,20 @@ library(dplyr)
 ```
 
 ```{r}
+df3$Date <- as.Date(df3$Date, "%m/%d/%Y")
 df3 %>%
-    time_decompose(df3$Date) %>%
+    time_decompose(Date) %>%
     anomalize(remainder) %>%
     time_recompose() %>%
     plot_anomalies(time_recomposed = TRUE, ncol = 3, alpha_dots = 0.5)
-df3
+head(df3)
+
+
+
+df3 %>%
+    time_decompose(Sales) %>%
+    anomalize(remainder) %>%
+    time_recompose() %>%
+    plot_anomalies(time_recomposed = TRUE, ncol = 3, alpha_dots = 0.5)
 
 ```
