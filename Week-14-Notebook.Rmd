@@ -63,7 +63,7 @@ library(devtools)
 library(ggbiplot)
 ggbiplot(df.pca)
 ```
-The factors that have the most influence on the total amount spent is the rating followed by unit price, gross income then quantity 
+# The factors that have the most influence on the total amount spent is the rating followed by unit price, gross income then quantity 
 ```{r}
 
 ggbiplot(df.pca,ellipse=TRUE,  labels=rownames(df),obs.scale = 1, var.scale = 1)
@@ -92,7 +92,7 @@ correlationMatrix <- cor(df)#only numerical variables
 correlationMatrix
 
 ```
-The quantity followed by the unit price have the highest correlation with the total amount spent 
+# The quantity followed by the unit price have the highest correlation with the total amount spent 
 ```{r}
 
 suppressWarnings(
@@ -107,9 +107,12 @@ suppressWarnings(
                 install.packages("mclust")))
 library(mclust)
 
-
-out = clustvarsel(df, G = 1:5)
+str(df)
+out = clustvarsel(df, sampsize =  50, samp = TRUE)
 out
+```
+```{r}
+summary(out$model)
 ```
 
 
@@ -143,9 +146,9 @@ summary(df2)
 ```
 
 ```{r}
-
-itemFrequency(df2[, 8:10],type = "absolute")
-round(itemFrequency(Transactions[, 8:10],type = "relative")*100,2)
+library(tibble)
+itemFrequencyPlot(df2,type = "absolute")
+round(itemFrequency(df2[, 8:10],type = "relative")*100,2)
 ```
 
 
@@ -168,6 +171,8 @@ library(dplyr)
 ```
 
 ```{r}
+df3$Date <- as.Date(df3$Date, "%m/%d/%Y")
+head(df3)
 df3 %>%
     time_decompose(df3$Date) %>%
     anomalize(remainder) %>%
