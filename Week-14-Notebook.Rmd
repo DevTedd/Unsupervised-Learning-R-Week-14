@@ -19,7 +19,7 @@ This section of the project entails reducing your dataset to a low dimensional d
 
 #loading up our data 
 library(readr)
-df1 <- read_csv("Supermarket_Dataset_1 - Sales Data.csv")
+df1 <- read_csv("D:/R Stuff/R Stuff Moringa/Unsupervised-Learning-R-Week-14/Supermarket_Dataset_1 - Sales Data.csv")
 head(df1)
 str(df1)
 ```
@@ -84,6 +84,9 @@ suppressWarnings(
                 install.packages("caret")))
 library(caret)
 library(corrplot)
+library(Boruta)
+
+
 ```
 
 
@@ -131,25 +134,76 @@ plot(mod,c("classification"))
 
 
 
+
+
+
+
+
+
+
 # Moving onto the Association Rules
 
 ```{r}
 #importing our second dataset
 library(arules)
 library(readr)
-df2 <- read_csv("Supermarket_Sales_Dataset II.csv")
-class(df2)
+
+path <-"D:/R Stuff/R Stuff Moringa/Unsupervised-Learning-R-Week-14/Supermarket_Sales_Dataset II.csv"
+
+Transactions<-read.transactions(path, sep = ",")
+Transactions
 ```
 ```{r}
-head(df2)
-summary(df2)
+class(Transactions)
+inspect(Transactions[1:5])
+items<-as.data.frame(itemLabels(Transactions))
+colnames(items) <- "Item"
+head(items, 10) 
 ```
 
 ```{r}
-library(tibble)
-itemFrequencyPlot(df2,type = "absolute")
-round(itemFrequency(df2[, 8:10],type = "relative")*100,2)
+summary(Transactions)
 ```
+
+```{r}
+
+itemFrequency(Transactions[, 8:10],type = "absolute")
+round(itemFrequency(Transactions[, 8:10],type = "relative")*100,2)
+```
+
+
+```{r}
+par(mfrow = c(1, 2))
+
+# plot the frequency of items
+itemFrequencyPlot(Transactions, topN = 10,col="darkgreen")
+itemFrequencyPlot(Transactions, support = 0.1,col="darkred")
+
+```
+
+```{r}
+rules <- apriori (Transactions, parameter = list(supp = 0.001, conf = 0.8))
+rules
+
+
+# Building a apriori model with Min Support as 0.002 and confidence as 0.8.
+rules2 <- apriori (Transactions,parameter = list(supp = 0.002, conf = 0.8)) 
+
+# Building apriori model with Min Support as 0.002 and confidence as 0.6.
+rules3 <- apriori (Transactions, parameter = list(supp = 0.001, conf = 0.6)) 
+
+rules2
+
+rules3
+
+```
+
+```{r}
+
+rules<-sort(rules, by="confidence", decreasing=TRUE)
+inspect(rules[1:5])
+```
+
 
 
 # Moving to Anomoly Detection 
@@ -170,14 +224,3 @@ library(magrittr) # needs to be run every time you start R and want to use %>%
 library(dplyr) 
 ```
 
-```{r}
-df3$Date <- as.Date(df3$Date, "%m/%d/%Y")
-head(df3)
-df3 %>%
-    time_decompose(df3$Date) %>%
-    anomalize(remainder) %>%
-    time_recompose() %>%
-    plot_anomalies(time_recomposed = TRUE, ncol = 3, alpha_dots = 0.5)
-df3
-
-```
